@@ -4,8 +4,6 @@
 .export nc_string
 .export nc_num
 
-TMP_X		= $26
-
 .code
 
 syntaxerr:	jmp	$af08
@@ -24,105 +22,101 @@ rn_loop:	sta	nc_string,x
 		sta	nc_string,x
 
 stringtonum:
-		ldx	#$ff
-stn_strlen:	inx
-		lda	nc_string,x
+		ldy	#$ff
+stn_strlen:	iny
+		lda	nc_string,y
 		bne	stn_strlen
-		ldy	#$15
-stn_copybcd:	dey
-		dex
+		ldx	#$15
+stn_copybcd:	dex
+		dey
 		bmi	stn_fillzero
-		lda	nc_string,x
+		lda	nc_string,y
 		and	#$f
-		sta	nc_string,y
+		sta	nc_string,x
 		bpl	stn_copybcd
 stn_fillzero:	lda	#$0
-		sta	nc_string,y
-		dey
+		sta	nc_string,x
+		dex
 		bpl	stn_fillzero
 		lda	#$0
-		ldx	#$7
-stn_znumloop:	sta	nc_num,x
-		dex
+		ldy	#$7
+stn_znumloop:	sta	nc_num,y
+		dey
 		bpl	stn_znumloop
-		ldx	#$40
-stn_loop:	ldy	#$6c
+		ldy	#$40
+stn_loop:	ldx	#$6c
 		clc
-stn_rorloop:	lda	nc_string-$6b,y
+stn_rorloop:	lda	nc_string-$6b,x
 		bcc	stn_skipbit
 		ora	#$10
 stn_skipbit:	lsr	a
-		sta	nc_string-$6b,y
-		iny
+		sta	nc_string-$6b,x
+		inx
 		bpl	stn_rorloop
-		stx	TMP_X
 		ldx	#$7
 stn_ror:	ror	nc_num,x
 		dex
 		bpl	stn_ror
-		ldx	TMP_X
-		dex
+		dey
 		bne	stn_sub
-		ldx	nc_string+$14
+		ldy	nc_string+$14
 		bne	illquant
 		rts
-stn_sub:	ldy	#$13
-stn_subloop:	lda	nc_string+1,y
+stn_sub:	ldx	#$13
+stn_subloop:	lda	nc_string+1,x
 		cmp	#$8
 		bmi	stn_nosub
 		sbc	#$3
-		sta	nc_string+1,y
-stn_nosub:	dey
+		sta	nc_string+1,x
+stn_nosub:	dex
 		bpl	stn_subloop
 		bmi	stn_loop
 
 numtostring:
-		ldx	#$15
+		ldy	#$15
 		lda	#$0
-nts_fillzero:	sta	nc_string-1,x
-		dex
+nts_fillzero:	sta	nc_string-1,y
+		dey
 		bne	nts_fillzero
-		ldx	#$40
-nts_bcdloop:	ldy	#$13
-nts_addloop:	lda	nc_string+1,y
+		ldy	#$40
+nts_bcdloop:	ldx	#$13
+nts_addloop:	lda	nc_string+1,x
 		cmp	#$5
 		bmi	nts_noadd
 		adc	#$2
-		sta	nc_string+1,y
-nts_noadd:	dey
+		sta	nc_string+1,x
+nts_noadd:	dex
 		bpl	nts_addloop
-		ldy	#$4
 		asl	nc_num
-		stx	TMP_X
 		ldx	#$f9
 nts_rol:	rol	nc_num-$f8,x
 		inx
 		bne	nts_rol
-		ldx	TMP_X
-nts_rolloop:	lda	nc_string+1,y
+		ldx	#$13
+nts_rolloop:	lda	nc_string+1,x
 		rol	a
 		cmp	#$10
 		and	#$f
-		sta	nc_string+1,y
-nts_rolnext:	dey
+		sta	nc_string+1,x
+nts_rolnext:	dex
 		bpl	nts_rolloop
-		dex
+		dey
 		bne	nts_bcdloop
-nts_scan:	cpy	#$14
+nts_scan:	cpx	#$14
 		beq	nts_copydigits
-		iny
-		lda	nc_string,y
+		inx
+		lda	nc_string,x
 		beq	nts_scan
 nts_copydigits:	ora	#$30
-		sta	nc_string,x
-		inx
+		sta	nc_string,y
 		iny
-		cpy	#$15
+		inx
+		cpx	#$15
 		beq	nts_done
-		lda	nc_string,y
+		lda	nc_string,x
 		bcc	nts_copydigits
 nts_done:	lda	#$0
-		sta	nc_string,x
+		sta	nc_string,y
 		rts
 
 .bss

@@ -1,4 +1,6 @@
 .import readnum
+.import numtostring
+.import nc_string
 
 .segment "LDADDR"
                 .word   $c000
@@ -10,5 +12,9 @@ STROUT		= $ab1e
 .code
 
 main:
-		jmp	readnum
+		jsr	readnum
+		jsr	numtostring
+		lda	#<nc_string
+		ldy	#>nc_string
+		jmp	STROUT
 
