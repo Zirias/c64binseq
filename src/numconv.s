@@ -4,19 +4,12 @@
 .export nc_string
 .export nc_num
 
-.code
-
-syntaxerr:	jmp	$af08
-illquant:	jmp	$b248
-
+.segment "INPUT"
 readnum:
 		jsr	$aefd
-		bcs	syntaxerr
 		ldx	#$00
 rn_loop:	sta	nc_string,x
 		inx
-		cpx	#$15
-		beq	illquant
 		jsr	$73
 		bcc	rn_loop
 		sta	nc_string,x
@@ -58,10 +51,7 @@ stn_ror:	ror	nc_num,x
 		dex
 		bpl	stn_ror
 		dey
-		bne	stn_sub
-		ldy	nc_string+$14
-		bne	illquant
-		rts
+		beq	stn_out
 stn_sub:	ldx	#$13
 stn_subloop:	lda	nc_string+1,x
 		cmp	#$8
@@ -71,7 +61,9 @@ stn_subloop:	lda	nc_string+1,x
 stn_nosub:	dex
 		bpl	stn_subloop
 		bmi	stn_loop
+stn_out:
 
+.segment "TOSTRING"
 numtostring:
 		ldy	#$15
 		lda	#$0
@@ -117,7 +109,6 @@ nts_copydigits:	ora	#$30
 		bcc	nts_copydigits
 nts_done:	lda	#$0
 		sta	nc_string,y
-		rts
 
 .bss
 

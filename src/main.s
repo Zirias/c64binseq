@@ -6,10 +6,8 @@
 .segment "LDADDR"
                 .word   $c000
 
-.code
-
+.segment "MAIN"
 main:
-		jsr	readnum
 		ldx	#$0f
 		lda	#$00
 clearloop:	sta	num_a,x
@@ -64,7 +62,8 @@ subloop:	lda	nc_num-$f8,x
 		sta	nc_num-$f8,x
 		inx
 		bne	subloop
-		jsr	numtostring
+
+.segment "OUTPUT"
 		lda	#<nc_string
 		ldy	#>nc_string
 		jmp	$ab1e
